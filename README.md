@@ -1,0 +1,4 @@
+# scrabble
+Making a 2 player scrabble game. Eventually will have an AI - currently does not.
+
+Inspiration for this comes from a similar project I did with a couple classmates in late 2019 for our Algorithms course. The assignment was to write an "artificially intelligent" opponent against which one user would play Scrabble or have multiple different artificially intelligent (or unintelligent) programs play against each each other. We were provided with Java programs that allowed us to play against a weak opponent and interfaced with our artificially intelligent program. I am attempting to recreate the assignment conditions and the assignment we submitted in Python. Then I will iteratively improve upon the Scrabble-playing program we submitted and eventually try to find other, better Scrabble-playing algorithms.
