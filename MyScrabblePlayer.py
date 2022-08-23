@@ -19,7 +19,7 @@ class MyScrabblePlayer(object):
         hand = self.gate.getHand()
         bestMove = list((None, None, None, None, None, None, None))
         for i in (0, 6, 1):
-            bestMove[i] = PlayWord.PlayWord(None, None, None, self.board)
+            bestMove[i] = PlayWord.PlayWord('', Location.Location(0, 0), Location.VERTICAL, self.board)
         bestScore = [] * 7
         for i in (0, 6, 1):
             # initialize the arrays
@@ -142,11 +142,11 @@ class MyScrabblePlayer(object):
                             words[
                                 2] = "" + a + b + c, a + b + c + " ", a + b + " " + c, a + " " + b + c, \
                                      " " + a + b + c, a + b + c + "  ", a + b + c + "   ", a + b + c + "    ", \
-                                     a + b + c + "     ", "  " + a + b + c, "   " + a + b + c, "    " + a + b + c,\
+                                     a + b + c + "     ", "  " + a + b + c, "   " + a + b + c, "    " + a + b + c, \
                                      "     " + a + b + c
                             words[
                                 3] = "" + a + b + c + d, a + b + c + d + " ", a + b + c + " " + d, \
-                                     a + b + " " + c + d, a + " " + b + c + d, " " + a + b + c + d,\
+                                     a + b + " " + c + d, a + " " + b + c + d, " " + a + b + c + d, \
                                      "  " + a + b + c + d, "   " + a + b + c + d, "     " + a + b + c + d
                             count = len(hand)
                             if count > 4:

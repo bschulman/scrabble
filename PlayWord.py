@@ -17,7 +17,7 @@ def removeTiles(word, hand):
 
 
 def play(board, word, location, direction, hand):
-    if Board.verifyLegality(board, word, location, direction, hand):
+    if board.verifyLegality(word, location, direction, hand):
         return
     board.scores[board.currentPlayer] += board.score(board, word, location, direction)
     board.placeWord(word, location, direction)
@@ -39,7 +39,6 @@ class PlayWord(object):
     #
     #
     #
-
     word = ''
 
     # The location of the first tile in the word (new or already on the board).
@@ -54,6 +53,6 @@ class PlayWord(object):
         self.location = location
         self.direction = direction
 
-    def play(self, board, playerNumber):
-        play(board, self.word, self.location, self.direction, board.getHand(playerNumber))
+    def play(self, board):
+        play(board, self.word, self.location, self.direction, board.getHand())
         return Location.Location(self.location, self.direction)
