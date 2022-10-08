@@ -7,23 +7,24 @@ in the window.  As a convenience, the module also imports the
 commonly used Color objects defined in the color module.
 """
 
+import time
 import os
 import sys
-import time
-
-import pygame
-import pygame.font
-import pygame.gfxdraw
-
-if sys.hexversion < 0x03000000:
-    import tkinter
-    import tkinter.filedialog
-else:
-    import tkinter.messagebox as messagebox
-    import tkinter.filedialog as tk_file_dialog
+import string
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import pygame
+import pygame.gfxdraw
+import pygame.font
 
+if sys.hexversion < 0x03000000:
+    import Tkinter
+    import tkMessageBox
+    import tkFileDialog
+else:
+    import tkinter as Tkinter
+    import tkinter.messagebox as tkMessageBox
+    import tkinter.filedialog as tkFileDialog
 
 # keystyped = []
 # -----------------------------------------------------------------------
@@ -142,10 +143,10 @@ if __name__ == '__main__':
 
 _BORDER = 0.0
 # _BORDER = 0.05
-_DEFAULT_X_MIN = 0.0
-_DEFAULT_X_MAX = 1.0
-_DEFAULT_Y_MIN = 0.0
-_DEFAULT_Y_MAX = 1.0
+_DEFAULT_XMIN = 0.0
+_DEFAULT_XMAX = 1.0
+_DEFAULT_YMIN = 0.0
+_DEFAULT_YMAX = 1.0
 _DEFAULT_CANVAS_SIZE = 512
 _DEFAULT_PEN_RADIUS = .005  # Maybe change this to 0.0 in the future.
 _DEFAULT_PEN_COLOR = BLACK
@@ -153,28 +154,41 @@ _DEFAULT_PEN_COLOR = BLACK
 _DEFAULT_FONT_FAMILY = 'Helvetica'
 _DEFAULT_FONT_SIZE = 12
 
-_x_min = 0
-_y_min = 0
-_x_max = 0
-_y_max = 0
+_xmin = None
+_ymin = None
+_xmax = None
+_ymax = None
 
 _fontFamily = _DEFAULT_FONT_FAMILY
 _fontSize = _DEFAULT_FONT_SIZE
 
 _canvasWidth = float(_DEFAULT_CANVAS_SIZE)
 _canvasHeight = float(_DEFAULT_CANVAS_SIZE)
-_penRadius = 0
+_penRadius = None
 _penColor = _DEFAULT_PEN_COLOR
-keysTyped = ['']
+# keysTyped = ['']
 
 # Has the window been created?
 _windowCreated = False
+
+# -----------------------------------------------------------------------
+# Begin added by Alan J. Broder
+# -----------------------------------------------------------------------
 
 # Keep track of mouse status
 
 # Has the mouse been left-clicked since the last time we checked?
 _mousePressed = False
 
+# The position of the mouse as of the most recent mouse click
+_mousePos = None
+
+
+# -----------------------------------------------------------------------
+# End added by Alan J. Broder
+# -----------------------------------------------------------------------
+
+# -----------------------------------------------------------------------
 
 def _pygameColor(c):
     """
@@ -192,28 +206,38 @@ def _pygameColor(c):
 # Private functions to scale and factor X and Y values.
 
 def _scaleX(x):
-    return _canvasWidth * (x - _x_min) / (_x_max - _x_min)
+    return _canvasWidth * (x - _xmin) / (_xmax - _xmin)
 
 
 def _scaleY(y):
-    return _canvasHeight * (_y_max - y) / (_y_max - _y_min)
+    return _canvasHeight * (_ymax - y) / (_ymax - _ymin)
 
 
 def _factorX(w):
-    return w * _canvasWidth / abs(_x_max - _x_min)
+    return w * _canvasWidth / abs(_xmax - _xmin)
 
 
 def _factorY(h):
-    return h * _canvasHeight / abs(_y_max - _y_min)
+    return h * _canvasHeight / abs(_ymax - _ymin)
 
+
+# -----------------------------------------------------------------------
+# Begin added by Alan J. Broder
+# -----------------------------------------------------------------------
 
 def _userX(x):
-    return _x_min + x * (_x_max - _x_min) / _canvasWidth
+    return _xmin + x * (_xmax - _xmin) / _canvasWidth
 
 
 def _userY(y):
-    return _y_max - y * (_y_max - _y_min) / _canvasHeight
+    return _ymax - y * (_ymax - _ymin) / _canvasHeight
 
+
+# -----------------------------------------------------------------------
+# End added by Alan J. Broder
+# -----------------------------------------------------------------------
+
+# -----------------------------------------------------------------------
 
 def setCanvasSize(w=_DEFAULT_CANVAS_SIZE, h=_DEFAULT_CANVAS_SIZE):
     """
@@ -221,16 +245,14 @@ def setCanvasSize(w=_DEFAULT_CANVAS_SIZE, h=_DEFAULT_CANVAS_SIZE):
     Calling this function is optional. If you call it, you must do
     so before calling any drawing function.
     """
-
+    global _background
     global _surface
     global _canvasWidth
     global _canvasHeight
     global _windowCreated
-    # noinspection PyGlobalUndefined
-    global _background
 
     if _windowCreated:
-        raise Exception('The std draw window already was created')
+        raise Exception('The stddraw window already was created')
 
     if (w < 1) or (h < 1):
         raise Exception('width and height must be positive')
@@ -238,42 +260,42 @@ def setCanvasSize(w=_DEFAULT_CANVAS_SIZE, h=_DEFAULT_CANVAS_SIZE):
     _canvasWidth = w
     _canvasHeight = h
     _background = pygame.display.set_mode([w, h])
-    pygame.display.set_caption('std draw window (r-click to save)')
+    pygame.display.set_caption('stddraw window (r-click to save)')
     _surface = pygame.Surface((w, h))
     _surface.fill(_pygameColor(WHITE))
     _windowCreated = True
 
 
-def setXscale(minimum=_DEFAULT_X_MIN, maximum=_DEFAULT_X_MAX):
+def setXscale(min=_DEFAULT_XMIN, max=_DEFAULT_XMAX):
     """
     Set the x-scale of the canvas such that the minimum x value
     is min and the maximum x value is max.
     """
-    global _x_min
-    global _x_max
-    minimum = float(minimum)
-    maximum = float(maximum)
-    if minimum >= maximum:
+    global _xmin
+    global _xmax
+    min = float(min)
+    max = float(max)
+    if min >= max:
         raise Exception('min must be less than max')
-    size = maximum - minimum
-    _x_min = minimum - _BORDER * size
-    _x_max = maximum + _BORDER * size
+    size = max - min
+    _xmin = min - _BORDER * size
+    _xmax = max + _BORDER * size
 
 
-def setY_scale(minimum=_DEFAULT_Y_MIN, maximum=_DEFAULT_Y_MAX):
+def setYscale(min=_DEFAULT_YMIN, max=_DEFAULT_YMAX):
     """
     Set the y-scale of the canvas such that the minimum y value
     is min and the maximum y value is max.
     """
-    global _y_min
-    global _y_max
-    minimum = float(minimum)
-    maximum = float(maximum)
-    if minimum >= maximum:
+    global _ymin
+    global _ymax
+    min = float(min)
+    max = float(max)
+    if min >= max:
         raise Exception('min must be less than max')
-    size = maximum - minimum
-    _y_min = minimum - _BORDER * size
-    _y_max = maximum + _BORDER * size
+    size = max - min
+    _ymin = min - _BORDER * size
+    _ymax = max + _BORDER * size
 
 
 def setPenRadius(r=_DEFAULT_PEN_RADIUS):
@@ -293,7 +315,7 @@ def setPenRadius(r=_DEFAULT_PEN_RADIUS):
 def setPenColor(c):
     """
     Set the pen color to c, where c is an object of class color.Color.
-    c defaults to std draw.BLACK.
+    c defaults to stddraw.BLACK.
     """
     global _penColor
     _penColor = c
@@ -414,8 +436,7 @@ def line(x0, y0, x1, y1):
     y1 = float(y1)
 
     lineWidth = _penRadius * 2.0
-    if lineWidth == 0.0:
-        lineWidth = 1.0
+    if lineWidth == 0.0: lineWidth = 1.0
     if lineWidth < THICK_LINE_CUTOFF:
         x0s = _scaleX(x0)
         y0s = _scaleY(y0)
@@ -529,7 +550,7 @@ def polygon(x, y):
     for yi in y:
         yScaled.append(_scaleY(float(yi)))
     points = []
-    for i in range(len(x)):
+    for i in range(min(len(x),len(y))):
         points.append((xScaled[i], yScaled[i]))
     points.append((xScaled[0], yScaled[0]))
     pygame.draw.polygon(
@@ -554,7 +575,7 @@ def filledPolygon(x, y):
     for yi in y:
         yScaled.append(_scaleY(float(yi)))
     points = []
-    for i in range(len(x)):
+    for i in range(min(len(y),len(x))):
         points.append((xScaled[i], yScaled[i]))
     points.append((xScaled[0], yScaled[0]))
     pygame.draw.polygon(_surface, _pygameColor(_penColor), points, 0)
@@ -570,12 +591,9 @@ def text(x, y, s):
     xs = _scaleX(x)
     ys = _scaleY(y)
     font = pygame.font.SysFont(_fontFamily, _fontSize)
-    temp_text = font.render(s, True, _pygameColor(_penColor))
-    text_position = temp_text.get_rect(center=(xs, ys))
-    _surface.blit(temp_text, text_position)
-
-
-global _surface
+    text = font.render(s, 1, _pygameColor(_penColor))
+    textpos = text.get_rect(center=(xs, ys))
+    _surface.blit(text, textpos)
 
 
 def picture(pic, x=None, y=None):
@@ -584,13 +602,13 @@ def picture(pic, x=None, y=None):
     object of class picture.Picture. x and y default to the midpoint
     of the background canvas.
     """
-
+    global _surface
     _makeSureWindowCreated()
     # By default, draw pic at the middle of the surface.
     if x is None:
-        x = (_x_max + _x_min) / 2.0
+        x = (_xmax + _xmin) / 2.0
     if y is None:
-        y = (_y_max + _y_min) / 2.0
+        y = (_ymax + _ymin) / 2.0
     x = float(x)
     y = float(y)
     xs = _scaleX(x)
@@ -640,18 +658,18 @@ def _show():
     # _checkForEvents()
 
 
-# def _showAndWaitForever():
-#     """
-#     Copy the background canvas to the window canvas. Then wait
-#     forever, that is, until the user closes the stddraw window.
-#     """
-#     _makeSureWindowCreated()
-#     _show()
-#     QUANTUM = .1
-#     # print("here")
-#     checkForEvents()
-#     while True:
-#         time.sleep(QUANTUM)
+def _showAndWaitForever():
+    """
+    Copy the background canvas to the window canvas. Then wait
+    forever, that is, until the user closes the stddraw window.
+    """
+    _makeSureWindowCreated()
+    _show()
+    QUANTUM = .1
+    # print("here")
+    checkForEvents()
+    while True:
+        time.sleep(QUANTUM)
 
 
 def show(msec=float('inf')):
@@ -674,14 +692,12 @@ def show(msec=float('inf')):
     sec = msec / 1000.0
     if sec < QUANTUM:
         time.sleep(sec)
-    # secondsWaited = 0.0
-    # while secondsWaited < sec:
-
-
+    secondsWaited = 0.0
+    #while secondsWaited < sec:
 #        time.sleep(QUANTUM)
-# secondsWaited += QUANTUM
-# if hasNextKeyTyped():
-#     return
+        #secondsWaited += QUANTUM
+    # if hasNextKeyTyped():
+    #     return
 
 
 # -----------------------------------------------------------------------
@@ -713,36 +729,67 @@ def _saveToFile():
         return
 
     if not fileName.endswith(('.jpg', '.png')):
-        subprocess.Popen(
+        childProcess = subprocess.Popen(
             [sys.executable, stddrawPath, 'reportFileSaveError',
              'File name must end with ".jpg" or ".png".'])
         return
 
     try:
         save(fileName)
-        subprocess.Popen(
+        childProcess = subprocess.Popen(
             [sys.executable, stddrawPath, 'confirmFileSave'])
-    except pygame.error as e:
-        subprocess.Popen(
+    except (pygame.error) as e:
+        childProcess = subprocess.Popen(
             [sys.executable, stddrawPath, 'reportFileSaveError', str(e)])
+
+
+def checkForEvents():
+    """
+    Check if any new event has occured (such as a key typed or button
+    pressed).  If a key has been typed, then put that key in a queue.
+    """
+    # print("here")
+    global _surface
+
+
+    # -------------------------------------------------------------------
+    # Begin added by Alan J. Broder
+    # -------------------------------------------------------------------
+    global _mousePos
+    global _mousePressed
+    # -------------------------------------------------------------------
+    # End added by Alan J. Broder
+    # -------------------------------------------------------------------
+
+    _makeSureWindowCreated()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            keysTyped = [event.unicode]
+            return keysTyped
+        elif (event.type == pygame.MOUSEBUTTONUP) and \
+                (event.button == 3):
+            _saveToFile()
 
 
 # -----------------------------------------------------------------------
 
 # Functions for retrieving keys
 
-def hasNextKeyTyped():
+def hasNextKeyTyped(keysTyped):
     """
     Return True if the queue of keys the user typed is not empty.
-    Otherwise, return False.
+    Otherwise return False.
     """
 
     return keysTyped is not []
 
 
-def nextKeyTyped():
+def nextKeyTyped(keysTyped):
     """
-    Remove the first key from the queue of keys that the user typed,
+    Remove the first key from the queue of keys that the the user typed,
     and return that key.
     """
 
@@ -774,7 +821,7 @@ def mouseX():
     hasn't happened yet, raise an exception, since mouseX() shouldn't
     be called until mousePressed() returns True.
     """
-
+    global _mousePos
     if _mousePos:
         return _userX(_mousePos[0])
     raise Exception(
@@ -804,7 +851,7 @@ def mouseY():
 # Initialize the x scale, the y scale, and the pen radius.
 
 setXscale()
-setY_scale()
+setYscale()
 setPenRadius()
 pygame.font.init()
 
@@ -817,9 +864,9 @@ def _getFileName():
     """
     Display a dialog box that asks the user for a file name.
     """
-    root = tkinter.Tk()
+    root = Tkinter.Tk()
     root.withdraw()
-    reply = tk_file_dialog.asksaveasfilename(initialdir='.')
+    reply = tkFileDialog.asksaveasfilename(initialdir='.')
     sys.stdout.write(reply)
     sys.stdout.flush()
     sys.exit()
@@ -829,10 +876,10 @@ def _confirmFileSave():
     """
     Display a dialog box that confirms a file save operation.
     """
-    root = tkinter.Tk()
+    root = Tkinter.Tk()
     root.withdraw()
-    messagebox.showinfo(title='File Save Confirmation',
-                        message='The drawing was saved to the file.')
+    tkMessageBox.showinfo(title='File Save Confirmation',
+                          message='The drawing was saved to the file.')
     sys.exit()
 
 
@@ -841,9 +888,9 @@ def _reportFileSaveError(msg):
     Display a dialog box that reports a msg.  msg is a string which
     describes an error in a file save operation.
     """
-    root = tkinter.Tk()
+    root = Tkinter.Tk()
     root.withdraw()
-    messagebox.showerror(title='File Save Error', message=msg)
+    tkMessageBox.showerror(title='File Save Error', message=msg)
     sys.exit()
 
 
@@ -961,6 +1008,9 @@ def _regressionTest():
         if hasNextKeyTyped():
             stdio.write(nextKeyTyped())
         show(0.0)
+
+    # Never get here.
+    show()
 
 
 # -----------------------------------------------------------------------

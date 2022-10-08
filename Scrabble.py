@@ -1,6 +1,4 @@
-from enum import Enum
 import StdDraw
-import handleKeys
 from Board import Board as Board
 from Gatekeeper import GateKeeper as GateKeeper
 from Location import Location as Location
@@ -203,7 +201,7 @@ class Game(object):
             # Draw instructions
             # StdDraw.setFont(self.INTERFACE_FONT)
             StdDraw.text(19, 7, "Type a word and hit enter to play.")
-            StdDraw.text(19, 6, "Use spaces for tiles aready on board,")
+            StdDraw.text(19, 6, "Use spaces for tiles already on board,")
             StdDraw.text(19, 5, "an upper-case letter to play a blank.")
             StdDraw.text(19, 4, "Use - and = as to move cursor up and down,")
             StdDraw.text(19, 3, "[ and ] to move cursor left and right,  ")
@@ -342,36 +340,37 @@ class Game(object):
         print(c)
         print(self.mode)
         if self.mode == 0:
-            boardCursorDirection = self.boardCursorDirection.opposite()
+            self.boardCursorDirection = self.boardCursorDirection.opposite()
             # Move board cursor
             local_next = None
             if c == "[":
-                local_next = self.boardCursor.antineighbor()
+                local_next = self.boardCursor.antineighbor(self.boardCursorDirection)
             elif c == "]":
                 local_next = self.boardCursor.neighbor()
             elif c == "=":
-                local_next = self.boardCursor.antineighbor()
+                local_next = self.boardCursor.antineighbor(self.boardCursorDirection)
             elif c == "-":
                 local_next = self.boardCursor.neighbor()
             if local_next and local_next.isOnBoard():
                 boardCursor = local_next
+                # Switch to hand mode
+            if c == "\\":
+                self.enterHandMode()
             # Type in word to be played
             if isLetterOrSpace(c):
                 self.wordBeingConstructed += c
             if c == "\x08" and not self.wordBeingConstructed.isEmpty():
-                self.wordBeingConstructed = self.wordBeingConstructed[0, len(self.wordBeingConstructed) - 1]
+                self.wordBeingConstructed = self.wordBeingConstructed.rstrip(self.wordBeingConstructed[-1])
                 print(self.wordBeingConstructed)
             # Play word
             if c == "\r":
-                word_to_play = PlayWord(self.wordBeingConstructed, self.boardCursor, boardCursorDirection, self.board)
+                word_to_play = PlayWord(self.wordBeingConstructed, self.boardCursor,
+                                        self.boardCursorDirection, self.board)
                 word_to_play.play(self.board)
-                if self.board.gameIsOver():
+                if self.board.Over():
                     self.mode = 4
                 else:
                     self.mode = 3
-            # Switch to hand mode
-            if c == "\\":
-                self.enterHandMode()
             elif self.mode == 1:
                 # Switch to board mode
                 if c == "\\":
@@ -383,7 +382,7 @@ class Game(object):
                         self.handCursor += 1
                     elif c == "=":
                         self.handCursor += 1
-                        if self.handCursor >= self.board.getHand(1).size():
+                        if self.handCursor >= self.board.getHand().size():
                             self.handCursor -= 1
 
                     # Toggle letter
@@ -391,8 +390,8 @@ class Game(object):
                         self.tilesToDiscard[self.handCursor] = not self.tilesToDiscard[self.handCursor]
                     # Exchange/pass
                     if c == "Enter":
-                        exchange(self.board.getHand(), self.tilesToDiscard, self.tilestoExchange)
-                        if gameIsOver(self.board):
+                        self.board.exchange(self.tiles_to_Exchange)
+                        if self.board.Over():
                             self.mode = 4
                         else:
                             self.mode = 3
@@ -415,11 +414,11 @@ class Game(object):
         while self.mode != 4:
             if self.mode == 3:
                 self.draw()
-                place = self.ai.chooseMove().play(self.board, 0)
+                place = self.ai.chooseMove().play(self.board)
                 if place:
                     self.boardCursor = place
                     self.boardCursorDirection = place
-                if self.board.gameIsOver():
+                if self.board.Over():
                     self.mode = 4
                 else:
                     self.enterBoardMode()

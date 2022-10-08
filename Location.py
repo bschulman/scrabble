@@ -1,13 +1,13 @@
 class Location(object):
 
-    def __init__(self, row, column):
+    def __init__(self, row: int, column: int):
         self.row = row
         self.column = column
 
-    def getRow(self):
+    def getRow(self) -> int:
         return self.row
 
-    def getColumn(self):
+    def getColumn(self) -> int:
         return self.column
 
     # Returns a new Location which is offset from this by direction. For example, a.neighbor(HORIZONTAL) is the
@@ -17,8 +17,8 @@ class Location(object):
 
     # Returns a new Location which is offset from this by the opposite of direction. For example, a.neighbor(
     # HORIZONTAL) is the location to the left of 'a'.
-    def antineighbor(self):
-        return Location(self.row - self.row, self.column - self.column)
+    def antineighbor(self, direction):
+        return Location(minus(self.row, direction), minus(self.column, direction))
 
     # Returns the opposite of this direction. HORIZONTAL and VERTICAL are opposites.
     def opposite(self):
@@ -52,3 +52,7 @@ VERTICAL = Location(1, 0)
 
 # The center square (which the first move must contain).
 CENTER = Location(7, 7)
+
+
+def minus(loc1: Location, loc2: Location) -> Location:
+    return Location(loc1.row - loc2.row, loc1.column - loc2.column)

@@ -1,6 +1,6 @@
 import random
 
-from Location import CENTER as CENTER
+from Location import *
 
 
 # Board object
@@ -127,7 +127,7 @@ class Board(object):
         self.deal()
         self.currentPlayer = 1 - self.currentPlayer
         self.numberOfPasses += 1
-        if self.gameIsOver():
+        if self.Over():
             self.scoreUnplayedTiles()
 
     # Removes the tiles used in word from hand and returns them in a new String.
@@ -428,7 +428,7 @@ class Board(object):
     #   board.__deal__(board.hands[1], 7)
 
     # Returns true if the game is over.
-    def gameIsOver(self):
+    def Over(self):
         return self.numberOfPasses == 2 or not self.hands[0] or not self.hands[1]
 
     # Scores any unplayed tiles at the end of the game.
@@ -454,5 +454,5 @@ class Board(object):
         self.deal()
         currentPlayer = 1 - self.currentPlayer
         numberOfPasses = 0
-        if self.gameIsOver():
+        if self.Over():
             self.scoreUnplayedTiles()

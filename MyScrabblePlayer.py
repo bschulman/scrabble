@@ -23,7 +23,7 @@ class MyScrabblePlayer(object):
         bestScore = [] * 7
         for i in (0, 6, 1):
             # initialize the arrays
-            bestScore[i] = -1
+            bestScore.append(-1)
             # needs a 7 nested for loop to consider every possible permutation of letters
         for p in range(0, len(hand), 1):
             for q in range(0, len(hand), 1):
@@ -86,7 +86,7 @@ class MyScrabblePlayer(object):
 
         best = 0
         index = 0
-        for i in range(0, 6):  # finds the best playable word using the scores
+        for i in range(0, len(bestScore)):  # finds the best playable word using the scores
             if bestScore[i] > best:
                 best = bestScore[i]
                 index = i

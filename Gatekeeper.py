@@ -27,7 +27,7 @@ class GateKeeper(object):
 
     # Returns a copy of the ScrabbleAI's hand.
     def getHand(self):
-        return self.board.getHand(self.player)
+        return self.board.getHand()
 
     def str(self):
         return self.board.str()

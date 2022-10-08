@@ -42,7 +42,7 @@ def getKeyPressed():
     while not temp_key:
         temp_key = input()
     if temp_key is not LAST_KEY_TYPED and temp_key is not None:
-        print(temp_key)
+        # print(temp_key)
         for i in range(0, 59):
             # print(key)
             if temp_key[0] == KEYS[i]:
